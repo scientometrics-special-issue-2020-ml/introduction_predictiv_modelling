@@ -1,30 +1,37 @@
 ############################################################################
 # Preamble
 ############################################################################
-source("../00_R_functions/preamble.R")
-
 rm(list=ls())
-graphics.off()
+set.seed(1337)
 
 ### Load packages  Standard
 library(tidyverse) # Collection of all the good stuff like dplyr, ggplot2 ect.
-library(data.table) # Good format to work with large datasets
-library(skimr) # Nice descriptives
 
-### Load extrapackages prediction
-library(caret) # ML training
-library(caTools) # Some extra caret tools
-library(caretEnsemble) # To work with ensembles
-library(recipes) # For nice preprocessing workflows
+### Load extra packages
+library(tidymodels)
+
+
 
 ############################################################################
 # Load data
 ############################################################################
 
-rm(list=ls())
-set.seed(1337)
+data <- readRDS("../input/pat_data_main.rds")
 
-data <- readRDS("temp/patent_data_RJ.RDS")
+############################################################################
+# Construct final dataset
+############################################################################
+
+# Do some filtering
+data %<>%
+  filter(appln_filing_year  >= 2000 & appln_filing_year  <= 2016) %>%
+  filter(appln_auth == 'US') %>%
+  select(-appln_auth)
+
+Normalize variables
+
+# Generate breakthrough variables
+
 
 # only post 2000
 data %<>%

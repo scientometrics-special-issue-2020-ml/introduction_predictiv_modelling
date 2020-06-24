@@ -41,7 +41,7 @@ pat_data %<>%
 
 #save
 pat_data %>%
-  saveRDS('input/pat_data_main.rds')
+  saveRDS('../input/pat_data_main.rds')
 
 
 
