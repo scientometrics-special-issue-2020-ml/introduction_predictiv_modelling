@@ -6,62 +6,18 @@ set.seed(1337)
 
 ### Load packages  Standard
 library(tidyverse) # Collection of all the good stuff like dplyr, ggplot2 ect.
-
+library(magrittr)
 ### Load extra packages
 library(tidymodels)
-
-
 
 ############################################################################
 # Load data
 ############################################################################
 
-data <- readRDS("../input/pat_data_main.rds")
+# NOTE: THIS IS ALL IDIOTIC DUE TO LACK IN TIME. Next time, sepperately take the patent quality data from the OECD and only the other fields from PATSTAT, then join
 
-############################################################################
-# Construct final dataset
-############################################################################
+data <- readRDS("../input/xxxx.rds")
 
-# Do some filtering
-data %<>%
-  filter(appln_filing_year  >= 2000 & appln_filing_year  <= 2016) %>%
-  filter(appln_auth == 'US') %>%
-  select(-appln_auth)
-
-Normalize variables
-
-# Generate breakthrough variables
-
-
-# only post 2000
-data %<>%
-  filter(year >= 2000 & year <= 2016) 
-
-# create conditional mean and breakthrough50
-data %<>%
-  group_by(year, tech_field) %>%
-  mutate(fwd_cits5_mean = mean(fwd_cits5, na.rm = TRUE)) %>%
-  ungroup() %>%
-  mutate(breakthrough50 = fwd_cits5 > fwd_cits5_mean) %>%
-  select(appln_id, breakthrough50, everything()) %>%
-  select(breakthrough, breakthrough50, sim.past, sim.present, originality, radicalness, nb_applicants, nb_inventors, many_field,
-         patent_scope, family_size, bwd_cits, npl_cits, claims_bwd,
-         patent_scope.diff, bwd_cits.diff, npl_cits.diff, family_size.diff, originality.diff, radicalness.diff,
-         sim.past.diff, sim.present.diff) %>%
-  replace_na(list(breakthrough = 0, breakthrough50 = 0,
-                  sim.past = 0, sim.present = 0, originality = 0, radicalness = 0, 
-                  nb_applicants = 1, nb_inventors = 1, many_field = 1,
-                  patent_scope = 1, family_size = 1, bwd_cits = 0, npl_cits = 0, claims_bwd = 0)) %>%
-  drop_na()
-
-skim(data)
-
-### Save for later
-saveRDS(data, "temp/data_reg.RDS")
-
-# subsample
-index <- createDataPartition(y = data$breakthrough50, p = 0.10, list = FALSE)
-data[index,] %>% saveRDS("temp/data_reg_sub.RDS")
 
 #########################################################################################################
 # Descriptives
@@ -72,7 +28,7 @@ require(stargazer)
 data %>%
   as.data.frame() %>%
   stargazer(out = "output/desc_bt.tex",
-            title = "Descriptive Statistics: USTPO and EPO Patents 2000-2016",
+            title = "Descriptive Statistics: USTPO Patents 2000-2016",
             label = "tab:desc_bt",
             align = FALSE,
             summary = TRUE,
@@ -116,6 +72,14 @@ graphics.off() # since pdf too big
 ############################################################################
 # training setup
 ############################################################################
+
+# Normalize variables by technology field/year cohort
+data %<>%
+  group_by(tech_field_main, appln_filing_year) %>%
+  mutate(across(c(family_size_docdb, amily_size_inpadoc, cit_bwd, cit_nlp, claims, originality, nb_applicants, nb_inventors), scale)) %>%
+  ungroup()
+
+
 
 training <- data; rm(data)
 
